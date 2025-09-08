@@ -1,0 +1,40 @@
+{
+  "name": "dokgui",
+  "author": {
+    "name": "Jonathan Matarazzi",
+    "email": "git@jonathanm.nl",
+    "url": "https://github.com/JonaMata"
+  },
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "@nuxt/eslint": "^1.9.0",
+    "@nuxt/ui": "^4.0.0-alpha.1",
+    "drizzle-orm": "^0.44.5",
+    "eslint": "^9.34.0",
+    "fs": "^0.0.1-security",
+    "nuxt": "^4.1.0",
+    "nuxt-auth-utils": "^0.5.24",
+    "ssh2": "^1.17.0",
+    "typescript": "^5.9.2",
+    "vue": "^3.5.20",
+    "vue-router": "^4.5.1",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@iconify-json/simple-icons": "^1.2.50",
+    "@types/node": "^24.3.1",
+    "@types/ssh2": "^1.15.5",
+    "better-sqlite3": "^12.2.0",
+    "drizzle-kit": "^0.31.4"
+  }
+}
