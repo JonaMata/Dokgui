@@ -5,17 +5,13 @@ import Footer from "~/components/layout/Footer.vue";
 </script>
 
 <template>
-  <UApp>
+  <UApp tooltip.delayDuration="200">
     <NavBar/>
     <UMain>
-      <UContainer>
-        <slot/>
-      </UContainer>
-      <div class="absolute bottom-0 w-full">
-        <USeparator icon="i-simple-icons-nuxtdotjs" type="dashed" class="h-px"/>
-        <Footer/>
-      </div>
+      <slot/>
     </UMain>
+    <USeparator icon="i-simple-icons-nuxtdotjs" type="dashed" class="h-px"/>
+    <Footer/>
   </UApp>
 </template>
 

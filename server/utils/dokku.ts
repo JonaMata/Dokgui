@@ -1,5 +1,4 @@
-import {Client} from 'ssh2'
-import {readFileSync} from 'fs'
+import type {Client} from 'ssh2'
 
 export async function listApps() {
     const apps: {
@@ -8,64 +7,76 @@ export async function listApps() {
         running?: boolean,
         deployed?: boolean,
     }[] = []
-    const client = await dokkuClient() as { run: (command: string) => Promise<string>, close: () => void }
-    const appsResult = await client.run('apps:list').catch(console.error)
+    const run = dokkuClient()
+    const psQuery = run('ps:report').result
+    const appsResult = await run('apps:list').result.catch(console.error)
     const appNames = (appsResult as string).split('\n').slice(0, -1).map(app => app.trim())
     for (const app of appNames) {
         apps.push({name: app})
     }
-    for (const app of apps) {
-        const appUrlsResult = await client.run(`urls ${app.name}`)
-        app.urls = (appUrlsResult as string).split('\n').slice(0, -1).map(app => app.trim())
-    }
-    const psResult = await client.run('ps:report')
+    const appsUrlsPromises = apps.map(app => run(`urls ${app.name}`).result.catch(console.error))
+    const psResult = await psQuery
     const psLines = (psResult as string).split('Stop timeout seconds:').slice(0, -1)
-    console.log(psResult)
     psLines.forEach((line, index) => {
-        console.log(line)
         const running = line.split('Running: ')[1].split('\n')[0].trim()
         const deployed = line.split('Deployed: ')[1].split('\n')[0].trim()
         apps[index].running = running === 'true'
         apps[index].deployed = deployed === 'true'
     })
-    client.close()
+    for (const [index, promise] of appsUrlsPromises.entries()) {
+        const appUrlsResult = await promise
+        apps[index].urls = (appUrlsResult as string).split('\n').slice(0, -1).map(app => app.trim())
+    }
     return apps
 }
 
-async function dokkuClient() {
-    return new Promise((resolve, reject) => {
-        const conn = new Client();
-        conn.on('ready', () => {
-            console.log('Client :: ready');
-            resolve({
-                run: (command: string) => {
-                    return new Promise((resolve, reject) => {
-                        let result = ""
-                        conn.exec('--quiet ' + command, (err, stream) => {
-                            if (err) reject(err)
-                            stream.on('close', (code: number, signal: string) => {
-                                if (code === 0) {
-                                    resolve(result)
-                                } else {
-                                    reject(`code: ${code}, signal: ${signal}, result: ${result}`)
-                                }
-                            }).on('data', (data: Buffer) => {
-                                result += data.toString()
-                            }).stderr.on('data', (err) => {
-                                reject(err)
-                            })
-                        })
+export function dokkuClient(includeStderr = false) {
+    return (command: string) => {
+        const stream = new TransformStream()
+        const writer = stream.writable.getWriter()
+        const result = new Promise((resolve, reject) => {
+            let result = ""
+            const ssh: { client: Client, ready: boolean, isReady: () => Promise<void> } = useNitroApp().ssh
+            ssh.isReady().then(() => {
+                ssh.client.exec('--quiet ' + command, (err, stream) => {
+                    if (err) {
+                        // console.error(err)
+                        writer.abort(err)
+                        reject(err)
+                    }
+                    stream.on('close', (code: number, signal: string) => {
+                        if (code === 0) {
+                            writer.close()
+                            resolve(result)
+                        } else {
+                            // console.error(`code: ${code}, signal: ${signal}, result: ${result}`)
+                            writer.abort(`code: ${code}, signal: ${signal}, result: ${result}`)
+                            reject(`code: ${code}, signal: ${signal}, result: ${result}`)
+                        }
+                    }).on('data', (data: Buffer) => {
+                        result += data.toString()
+                        writer.write(data)
+                        // console.log(data.toString())
+                    }).on('error', (err) => {
+                        // console.error(err)
+                        writer.abort(err)
+                        reject(err)
+                    }).stderr.on('data', (err) => {
+                        if (includeStderr) {
+                            result += err.toString()
+                            writer.write(err)
+                        } else {
+                            // console.error(err.toString())
+                            writer.abort(err)
+                            reject(err)
+                        }
                     })
-                },
-                close: () => conn.end()
+                })
             })
-        }).connect({
-            host: '192.168.1.16',
-            port: 22,
-            username: 'dokku',
-            privateKey: readFileSync('./.ssh/id_ed25519')
-        }).on('error', (err) => {
-            reject(err)
-        });
-    })
+        })
+        return {
+            stream: stream.readable,
+            result
+        }
+    }
 }
