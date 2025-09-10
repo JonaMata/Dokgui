@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import type { NavigationMenuItem } from '@nuxt/ui'
+import type {NavigationMenuItem} from '@nuxt/ui'
+import {UDashboardNavbar, UHeader} from "#components";
+
+const props = defineProps<{
+  dashboard?: boolean
+}>()
 
 const route = useRoute()
 
@@ -14,17 +19,21 @@ const items = computed<NavigationMenuItem[]>(() => [
     to: '/apps',
     active: route.path.startsWith('/apps')
   },
+  {
+    label: 'Tokens',
+    to: '/tokens',
+    active: route.path.startsWith('/tokens')
+  }
 ])
 </script>
 
 <template>
-  <UHeader>
-    <template #title>
-      Title
-    </template>
+  <component :is="props.dashboard ? UDashboardNavbar : UHeader">
+        <template #title>
+          Dokgui
+        </template>
 
     <UNavigationMenu :items="items"/>
-
     <template #right>
       <UColorModeButton/>
 
@@ -39,7 +48,7 @@ const items = computed<NavigationMenuItem[]>(() => [
         />
       </UTooltip>
     </template>
-  </UHeader>
+  </component>
 </template>
 
 <style scoped>

@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
 
     const repo = getRouterParam(event, 'repo')
     let commands = await readRawBody(event, false)
-    console.log('commands: ', commands?.toString())
+    // console.log('commands: ', commands?.toString())
     // if (commands?.toString().startsWith('0014command=ls-refs')) {
     //     commands = undefined
     // }
