@@ -13,7 +13,7 @@ onMounted(async () => {
 
 <template>
   <UContainer class="prose">
-    <h2 class="mt-4 mb-4">Apps</h2>
+    <h2 class="mb-4">Apps</h2>
     <UPageGrid>
       <UCard @click="navigateTo(`/apps/${app.name}`)" variant="subtle" v-for="app in apps" :key="app.name">
         <template #header>
