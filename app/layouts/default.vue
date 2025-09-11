@@ -7,7 +7,7 @@ import Footer from "~/components/layout/Footer.vue";
 <template>
   <UApp tooltip.delayDuration="200">
     <NavBar/>
-    <UMain>
+    <UMain class="py-4">
       <slot/>
     </UMain>
     <USeparator icon="i-simple-icons-nuxtdotjs" type="dashed" class="h-px"/>

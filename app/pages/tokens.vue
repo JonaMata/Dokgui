@@ -32,19 +32,32 @@ async function deleteToken(name: string) {
 }
 
 onMounted(async () => {
-  tokens.value = await useFetch('/api/user/token/list')
+  tokens.value = await $fetch('/api/user/token/list')
 })
 </script>
 
 <template>
-  <UContainer class="prose">
-    <h2 class="mt-4 mb-4">Tokens</h2>
-    <ul>
-      <li class="mb-2" v-for="token in tokens" :key="token.name">
-        {{ token.name }} : {{ token.token }}
-        <UButton @click="deleteToken(token.name)">Delete</UButton>
-      </li>
-    </ul>
+  <UContainer class="prose relative">
+    <h2 class="mb-4">Tokens</h2>
+    <table class="table-auto border-separate border-spacing-y-2 border-spacing-x-4">
+      <thead class="font-bold">
+      <tr>
+        <td>Name</td>
+        <td>Token</td>
+        <td>Actions</td>
+      </tr>
+      </thead>
+      <tbody>
+      <tr v-for="token in tokens" :key="token.name">
+        <td>{{ token.name }}</td>
+        <td>{{ token.token }}</td>
+        <td>
+          <UButton @click="deleteToken(token.name)">Delete</UButton>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+    <h3>New token</h3>
     <form @submit.prevent="createToken">
       <UInput v-model="formData.name" type="text" placeholder="Name"/>
       <UButton class="ms-2" type="submit">Create token</UButton>

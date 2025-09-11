@@ -94,7 +94,7 @@ async function runCommand(command: string) {
 <template>
   <UContainer class="prose">
     <div class="flex items-center w-full">
-      <h2 class="mt-4 mb-4">{{ appName }}</h2>
+      <h2 class="mb-4">{{ appName }}</h2>
       <UBadge :color="!state['Deployed'] ? 'warning' : state['Running'] ? 'success' : 'error'" class="ms-4">
         {{ !state['Deployed'] ? 'Not deployed' : state['Running'] ? 'Running' : 'Stopped' }}
       </UBadge>
@@ -136,8 +136,8 @@ async function runCommand(command: string) {
       </tr>
       </tbody>
     </table>
-    <USeparator icon="i-pajamas-log" type="dashed"/>
-    <div class="font-mono border border-gray-500 rounded-sm p-2 bg-gray-100" v-html="logs"/>
+    <USeparator class="my-2" icon="i-pajamas-log" type="dashed"/>
+    <div class="font-mono border border-gray-500 rounded-sm p-2 bg-gray-100 dark:bg-gray-800" v-html="logs"/>
     <UModal v-model:open="modalOpen" :dismissible="!commandRunnning" :scrollable="true">
       <template #header>
         <h3 class="text-lg font-bold">{{ modalTitle }}</h3>

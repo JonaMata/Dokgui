@@ -16,6 +16,12 @@
     --color-green-900: #0a5331;
     --color-green-950: #052e16;
 }
+
+@layer base {
+    :root {
+        --ui-footer-height: calc(var(--spacing) * 20)
+    }
+}
 /*@layer components {*/
 
     .prose h1 { @apply text-4xl md:text-5xl font-bold tracking-tight}
