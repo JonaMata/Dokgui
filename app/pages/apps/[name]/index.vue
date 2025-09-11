@@ -144,7 +144,7 @@ async function runCommand(command: string) {
       </template>
       <template #body>
         <div
-            class="font-mono border border-gray-500 rounded-sm p-2 bg-gray-100 h-full overflow-auto"
+            class="font-mono border border-gray-500 rounded-sm p-2 bg-gray-100 dark:bg-gray-800 h-full overflow-auto"
             v-html="commandOutput"/>
       </template>
       <template #footer>
