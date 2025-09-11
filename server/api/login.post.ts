@@ -9,7 +9,6 @@ const drizzle = useDrizzle();
 
 export default defineEventHandler(async (event) => {
     const { email, password } = await readValidatedBody(event, bodySchema.parse)
-    await drizzle.insert(users).values({ email: 'accounts@jonathanm.nl', password: await hashPassword('Gitbridge3!'), createdAt: new Date() }).onConflictDoNothing().run();
 
     const user: User | undefined  = await drizzle.query.users.findFirst({
         where: eq(users.email, email)
