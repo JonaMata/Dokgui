@@ -1,6 +1,6 @@
 import type {ConnectConfig} from 'ssh2';
 import {Client} from 'ssh2'
-import {readFileSync} from 'fs'
+import 'dotenv/config'
 
 export default defineNitroPlugin((nitroApp) => {
     nitroApp.ssh = {
@@ -23,10 +23,10 @@ export default defineNitroPlugin((nitroApp) => {
 function createSshClient(nitroApp) {
     const conn: Client = new Client();
     const connectConfig: ConnectConfig = {
-        host: '192.168.1.16',
-        port: 22,
+        host: process.env.DOKKU_SSH_HOST,
+        port: process.env.DOKKU_SSH_PORT ? parseInt(process.env.DOKKU_SSH_PORT) : 22,
         username: 'dokku',
-        privateKey: readFileSync('./.ssh/id_ed25519')
+        privateKey: process.env.DOKKU_SSH_PRIVATE_KEY,
     }
     conn.on('ready', () => {
         console.log('SSH Client :: ready');
