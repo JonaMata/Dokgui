@@ -40,7 +40,7 @@ export function dokkuClient(includeStderr = false) {
             ssh.isReady().then(() => {
                 ssh.client!.exec('--quiet ' + command, (err, stream) => {
                     if (err) {
-                        console.error(err)
+                        console.error('Dokku run start error', err)
                         writer.abort(err)
                         reject(err)
                     }
@@ -57,16 +57,16 @@ export function dokkuClient(includeStderr = false) {
                         result += data.toString()
                         writer.write(data)
                         // console.log(data.toString())
-                    }).on('error', (err) => {
-                        console.error(err)
-                        writer.abort(err)
-                        reject(err)
+                    }).on('error', (err: Buffer) => {
+                        console.error('Dokku run error', err.toString())
+                        writer.abort(err.toString())
+                        reject(err.toString())
                     }).stderr.on('data', (err) => {
                         if (includeStderr) {
                             result += err.toString()
                             writer.write(err)
                         } else {
-                            console.error(err.toString())
+                            console.error('Dokku run stderr', err.toString())
                             writer.abort(err)
                             reject(err)
                         }

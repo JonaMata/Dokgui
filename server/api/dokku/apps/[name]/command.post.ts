@@ -5,6 +5,7 @@ const bodySchema = z.object({
     command: z.enum(['rebuild', 'start', 'stop', 'restart'])
 })
 export default defineEventHandler(async (event) => {
+    await requireUserSession(event)
     const run = dokkuClient(true)
     const {name} = event.context.params as { name: string }
     const {command} = await readValidatedBody(event, bodySchema.parse)

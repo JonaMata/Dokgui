@@ -1,4 +1,5 @@
 export default defineEventHandler(async (event) => {
+    await requireUserSession(event)
     const { name } = event.context.params as { name: string }
     const run = dokkuClient()
     const logsResult = await run(`logs ${name}`).result.catch(console.error)

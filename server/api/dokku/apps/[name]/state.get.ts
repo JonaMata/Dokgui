@@ -1,6 +1,7 @@
 import {dokkuClient} from "~~/server/utils/dokku";
 
 export default defineEventHandler(async (event) => {
+    await requireUserSession(event)
     const run = dokkuClient()
     const {name} = event.context.params as { name: string }
     const stateResult = await run(`ps:report ${name}`).result.catch(console.error)
