@@ -36,11 +36,11 @@ export function dokkuClient(includeStderr = false) {
         const writer = stream.writable.getWriter()
         const result = new Promise((resolve, reject) => {
             let result = ""
-            const ssh: { client: Client, ready: boolean, isReady: () => Promise<void> } = useNitroApp().ssh
+            const ssh = useNitroApp().ssh
             ssh.isReady().then(() => {
-                ssh.client.exec('--quiet ' + command, (err, stream) => {
+                ssh.client!.exec('--quiet ' + command, (err, stream) => {
                     if (err) {
-                        // console.error(err)
+                        console.error(err)
                         writer.abort(err)
                         reject(err)
                     }
@@ -49,7 +49,7 @@ export function dokkuClient(includeStderr = false) {
                             writer.close()
                             resolve(result)
                         } else {
-                            // console.error(`code: ${code}, signal: ${signal}, result: ${result}`)
+                            console.error(`code: ${code}, signal: ${signal}, result: ${result}`)
                             writer.abort(`code: ${code}, signal: ${signal}, result: ${result}`)
                             reject(`code: ${code}, signal: ${signal}, result: ${result}`)
                         }
@@ -58,7 +58,7 @@ export function dokkuClient(includeStderr = false) {
                         writer.write(data)
                         // console.log(data.toString())
                     }).on('error', (err) => {
-                        // console.error(err)
+                        console.error(err)
                         writer.abort(err)
                         reject(err)
                     }).stderr.on('data', (err) => {
@@ -66,7 +66,7 @@ export function dokkuClient(includeStderr = false) {
                             result += err.toString()
                             writer.write(err)
                         } else {
-                            // console.error(err.toString())
+                            console.error(err.toString())
                             writer.abort(err)
                             reject(err)
                         }
