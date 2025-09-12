@@ -1,8 +1,31 @@
 import type {ConnectConfig} from 'ssh2';
+import type {NitroApp} from 'nitropack'
 import {Client} from 'ssh2'
+import ssh2 from 'ssh2'
 import 'dotenv/config'
+import {readFileSync, writeFileSync, existsSync} from "node:fs";
+
+export interface Ssh {
+    client: Client | undefined,
+    ready: boolean,
+    isReady: () => Promise<void>
+}
+
+declare module 'nitropack' {
+    interface NitroApp {
+        ssh: Ssh
+    }
+}
+
+const keyPath = './.data/id_ed25519'
 
 export default defineNitroPlugin((nitroApp) => {
+    if (!existsSync(keyPath)) {
+        console.log('test')
+        const keys = ssh2.utils.generateKeyPairSync('ed25519')
+        writeFileSync(keyPath, keys.private)
+        writeFileSync(keyPath + '.pub', keys.public)
+    }
     nitroApp.ssh = {
         client: undefined,
         ready: false,
@@ -20,13 +43,13 @@ export default defineNitroPlugin((nitroApp) => {
     nitroApp.ssh.client = createSshClient(nitroApp)
 })
 
-function createSshClient(nitroApp) {
+function createSshClient(nitroApp: NitroApp) {
     const conn: Client = new Client();
     const connectConfig: ConnectConfig = {
         host: process.env.DOKKU_SSH_HOST,
         port: process.env.DOKKU_SSH_PORT ? parseInt(process.env.DOKKU_SSH_PORT) : 22,
         username: 'dokku',
-        privateKey: process.env.DOKKU_SSH_PRIVATE_KEY,
+        privateKey: readFileSync(keyPath),
     }
     conn.on('ready', () => {
         console.log('SSH Client :: ready');

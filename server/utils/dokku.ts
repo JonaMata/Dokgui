@@ -36,9 +36,9 @@ export function dokkuClient(includeStderr = false) {
         const writer = stream.writable.getWriter()
         const result = new Promise((resolve, reject) => {
             let result = ""
-            const ssh: { client: Client, ready: boolean, isReady: () => Promise<void> } = useNitroApp().ssh
+            const ssh = useNitroApp().ssh
             ssh.isReady().then(() => {
-                ssh.client.exec('--quiet ' + command, (err, stream) => {
+                ssh.client!.exec('--quiet ' + command, (err, stream) => {
                     if (err) {
                         // console.error(err)
                         writer.abort(err)

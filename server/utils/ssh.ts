@@ -1,4 +1,5 @@
 import type {Client} from 'ssh2'
+import type {Ssh} from "~~/server/plugins/ssh";
 
 
 export async function sshGit(gitCommand: string, repo: string, writer: WritableStreamDefaultWriter, expectedMessages: number, commands?: Buffer | undefined) {
@@ -6,9 +7,9 @@ export async function sshGit(gitCommand: string, repo: string, writer: WritableS
     let receivedMessages = 0
     let buffer: Buffer | undefined = undefined
     if (!commands) commandsSend = true
-    const ssh: {client: Client, ready: boolean, isReady: () => Promise<void>} = useNitroApp().ssh
+    const ssh: Ssh = useNitroApp().ssh
     await ssh.isReady()
-    ssh.client.exec(gitCommand + ' ' + repo, (err, stream) => {
+    ssh.client!.exec(gitCommand + ' ' + repo, (err, stream) => {
         if (err) {
             writer.abort(err);
             return stream.close()
