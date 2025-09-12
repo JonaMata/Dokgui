@@ -1,74 +1,80 @@
 # Dokgui
 
 A GUI and http git server for Dokku.
-## Setup
+
+## Install
+
+This repo can be directly within dokku.
+
+### Prerequisites
+
+You should have configured dokku with a working global domain using:
+```bash
+dokku domains:add-global yourdokkudomain.com
+dokku domains:set-global yourdokkudomain.com
+```
+
+### Configuration
+1.  Create a dokku app for Dokgui using:
+    ```bash
+    dokku apps:create dokgui
+    ```
+3.  Set the following environment variables on the `dokgui` app:
+    ```bash
+    dokku config:set dokgui DOKKU_SSH_HOST=<ip of dokku host> DOKKU_SSH_PORT=<ssh port of dokku host>
+    ```
+4.  Create persistant storage for Dokgui:
+    ```bash
+    dokku storage:ensure-directory dokgui
+    dokku storage:mount dokgui /var/lib/dokku/data/storage/dokgui:/app/.data
+    ```
+
+### Deploy
+
+Deploy this repo to dokku using:
+```bash
+git push dokku@<dokku host ip>:dokgui main
+```
+
+### Success
+
+Dokgui should now be reachable on dokgui.yourdokkudomain.com
+
+## Development / Local testing
+
+For testing and development purposes, Dokgui can be run locally.
+
+### Configuration
+
+Add a `.env` file defining your Dokku host IP and SSH port:
+
+```.env
+DOKKU_SSH_HOST=you.dokku.ip
+DOKKU_SSH_PORT=22
+```
+
+### Setup
 
 Make sure to install dependencies:
 
 ```bash
-# npm
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
 ```
 
-## Development Server
+### Database migration
+
+Run the necessary database migrations using:
+
+```bash
+npm run db:migrate
+```
+
+### Development Server
 
 Start the development server on `http://localhost:3000`:
 
 ```bash
-# npm
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
 
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
