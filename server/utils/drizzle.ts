@@ -9,11 +9,11 @@ export function useDrizzle() {
 }
 
 const drizzle = useDrizzle()
-
-if ((await drizzle.query.users.findMany()).length === 0) {
-    // create a default user
-    await drizzle.insert(schema.users).values({ email: 'admin@example.com', password: await hashPassword('changeme'), createdAt: new Date() }).onConflictDoNothing().run();
-}
+drizzle.query.users.findMany().then(async (res: typeof schema.users.$inferSelect[]) => {
+    if (res?.length === 0) {
+        drizzle.insert(schema.users).values({ email: 'admin@example.com', password: await hashPassword('changeme'), createdAt: new Date() }).onConflictDoNothing().run();
+    }
+})
 
 export const users = schema.users
 export const tokens = schema.tokens
