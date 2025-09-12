@@ -8,10 +8,10 @@ export function useDrizzle() {
     return drizzle('./.data/db.sqlite', { schema })
 }
 
-const drizzle = useDrizzle()
-drizzle.query.users.findMany().then(async (res: typeof schema.users.$inferSelect[]) => {
+const drizzleClient = useDrizzle()
+drizzleClient.query.users.findMany().then(async (res: typeof schema.users.$inferSelect[]) => {
     if (res?.length === 0) {
-        drizzle.insert(schema.users).values({ email: 'admin@example.com', password: await hashPassword('changeme'), createdAt: new Date() }).onConflictDoNothing().run();
+        drizzleClient.insert(schema.users).values({ email: 'admin@example.com', password: await hashPassword('changeme'), createdAt: new Date() }).onConflictDoNothing().run();
     }
 })
 
