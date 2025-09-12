@@ -9,7 +9,7 @@
   "private": true,
   "scripts": {
     "start": "node ./.output/server/index.mjs",
-    "build": "nuxt build",
+    "build": "nuxt build && npm run db:migrate",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
