@@ -1,16 +1,11 @@
-import {dokkuClient} from "~~/server/utils/dokku";
-
 export default defineEventHandler(async (event) => {
     await requireUserSession(event)
-    const run = dokkuClient()
     const {name} = event.context.params as { name: string }
-    const urlsResult = await run(`urls ${name}`).result.catch(console.error)
-    if (!urlsResult) {
+    return dokku.apps.urls(name).catch(err => {
         throw createError({
             statusCode: 404,
-            statusMessage: `App ${name} not found`
+            statusMessage: `App ${name} not found`,
+            data: err.message
         })
-    }
-    const urlsLines = (urlsResult as string).split('\n').slice(0, -1)
-    return urlsLines
+    })
 })

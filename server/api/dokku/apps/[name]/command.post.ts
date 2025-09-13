@@ -1,15 +1,13 @@
-import {dokkuClient} from "~~/server/utils/dokku";
 import {z} from 'zod'
+import {APP_COMMANDS} from "#shared/dokku/apps";
 
 const bodySchema = z.object({
-    command: z.enum(['rebuild', 'start', 'stop', 'restart'])
+    command: z.enum(APP_COMMANDS)
 })
 export default defineEventHandler(async (event) => {
     await requireUserSession(event)
-    const run = dokkuClient(true)
     const {name} = event.context.params as { name: string }
     const {command} = await readValidatedBody(event, bodySchema.parse)
-    const {result, stream} = run(`ps:${command} ${name}`)
-    result.catch(console.error)
+    const stream = dokku.apps.command(name, command)
     return sendStream(event, stream)
 })

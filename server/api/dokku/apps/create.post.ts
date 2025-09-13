@@ -7,8 +7,7 @@ const bodySchema = zod.object({
 
 export default defineEventHandler(async (event) => {
     await requireUserSession(event)
-    const { provider } = event.context.params as { provider: string }
     const { name } = await readValidatedBody(event, bodySchema.parse)
-    const stream = await dokku.databases.create(provider, name)
+    const stream = await dokku.apps.create(name)
     return sendStream(event, stream)
 })

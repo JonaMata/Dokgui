@@ -1,46 +1,34 @@
-import type {Client} from 'ssh2'
+import databases from './dokku/databases'
+import apps from './dokku/apps'
 
-export async function listApps() {
-    const apps: {
-        name: string,
-        urls?: string[],
-        running?: boolean,
-        deployed?: boolean,
-    }[] = []
-    const run = dokkuClient()
-    const psQuery = run('ps:report').result
-    const appsResult = await run('apps:list').result.catch(console.error)
-    const appNames = (appsResult as string).split('\n').slice(0, -1).map(app => app.trim())
-    for (const app of appNames) {
-        apps.push({name: app})
-    }
-    const appsUrlsPromises = apps.map(app => run(`urls ${app.name}`).result.catch(console.error))
-    const psResult = await psQuery
-    const psLines = (psResult as string).split('Stop timeout seconds:').slice(0, -1)
-    psLines.forEach((line, index) => {
-        const running = line.split('Running: ')[1].split('\n')[0].trim()
-        const deployed = line.split('Deployed: ')[1].split('\n')[0].trim()
-        apps[index].running = running === 'true'
-        apps[index].deployed = deployed === 'true'
-    })
-    for (const [index, promise] of appsUrlsPromises.entries()) {
-        const appUrlsResult = await promise
-        apps[index].urls = (appUrlsResult as string).split('\n').slice(0, -1).map(app => app.trim())
-    }
-    return apps
+export const dokku = {
+    databases,
+    apps,
 }
 
-export function dokkuClient(includeStderr = false) {
-    return (command: string) => {
+interface DokkuOptions {
+    includeStderr?: boolean,
+    quiet?: boolean,
+}
+
+export function dokkuClient() {
+    return (command: string, options: DokkuOptions = {}) => {
+        options = {
+            includeStderr: false,
+            quiet: true,
+            ...options
+        }
+        if (options.quiet) {
+            command = '--quiet ' + command
+        }
         const stream = new TransformStream()
         const writer = stream.writable.getWriter()
         const result = new Promise((resolve, reject) => {
             let result = ""
             const ssh = useNitroApp().ssh
             ssh.isReady().then(() => {
-                ssh.client!.exec('--quiet ' + command, (err, stream) => {
+                ssh.client!.exec(command, (err, stream) => {
                     if (err) {
-                        console.error('Dokku run start error', err)
                         writer.abort(err)
                         reject(err)
                     }
@@ -49,24 +37,22 @@ export function dokkuClient(includeStderr = false) {
                             writer.close()
                             resolve(result)
                         } else {
-                            console.error(`code: ${code}, signal: ${signal}, result: ${result}`)
                             writer.abort(`code: ${code}, signal: ${signal}, result: ${result}`)
                             reject(`code: ${code}, signal: ${signal}, result: ${result}`)
                         }
                     }).on('data', (data: Buffer) => {
                         result += data.toString()
                         writer.write(data)
-                        // console.log(data.toString())
                     }).on('error', (err: Buffer) => {
-                        console.error('Dokku run error', err.toString())
+                        stream.destroy()
                         writer.abort(err.toString())
                         reject(err.toString())
                     }).stderr.on('data', (err) => {
-                        if (includeStderr) {
+                        if (options.includeStderr) {
                             result += err.toString()
                             writer.write(err)
                         } else {
-                            console.error('Dokku run stderr', err.toString())
+                            stream.destroy()
                             writer.abort(err)
                             reject(err)
                         }
