@@ -79,7 +79,7 @@ export const info = async (provider: Provider, name: string): Promise<Database> 
     const info = linesToRecord(infoLines)
     let apps: string[] = []
     if (info.Links !== '-') {
-        apps = (info.Links as string).split(',').map(link => link.trim())
+        apps = (info.Links as string).split(' ').map(link => link.trim())
     }
     return {name, provider, apps, status: info.Status, version: info.Version}
 
