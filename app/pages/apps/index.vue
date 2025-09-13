@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { App } from "#shared/dokku/apps"
 import Convert from "ansi-to-html";
 
 definePageMeta({
@@ -12,7 +13,7 @@ const commandOutput: Ref<string | undefined> = ref(undefined)
 const commandRunnning: Ref<boolean> = ref(false)
 const newAppName: Ref<string> = ref('')
 
-const apps: App[] = ref([])
+const apps: Ref<App[]> = ref([])
 onMounted(async () => {
   apps.value = await $fetch('/api/dokku/apps/list', {
     query: {
@@ -23,7 +24,7 @@ onMounted(async () => {
 })
 
 
-function createModal(provider: string) {
+function createModal() {
   commandOutput.value = undefined
   newAppName.value = ''
   modalTitle.value = 'Create new app'
@@ -74,7 +75,7 @@ async function createApp() {
         <template #header>
           <div class="flex justify-between items-center">
             <h3>{{ app.name }}</h3>
-            <template v-if="app.state.deployed">
+            <template v-if="app.state?.deployed">
               <UTooltip :text="app.state.running ? 'Running' : 'Stopped'">
                 <div class="rounded-full h-4 w-4 " :class="app.state.running ? 'bg-primary animate-pulse' : 'bg-error'"/>
               </UTooltip>

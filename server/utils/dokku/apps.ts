@@ -4,6 +4,34 @@ import {linesToRecord} from "~~/server/utils/parser";
 
 const run = dokkuClient()
 
+const config = {
+    list: async (name: string) => {
+        const configResult = await run(`config:show ${name}`).result as string
+        const configLines = configResult.split('\n').map(line => line.trim()).filter(line => line.length > 0)
+        return configLines.map((line) => {
+            const splits = line.split(':')
+            return {key: splits[0].trim(), value: splits.slice(1).join(':').trim()}
+        })
+    },
+    get: async (name: string, key: string) => {
+        const configResult = await run(`config:get ${name} ${key}`).result as string
+        const configLines = configResult.split('\n').map(line => line.trim())
+        return linesToRecord(configLines)[0]
+    },
+    set: async (name:string, key: string, value: string) => {
+        return await run(`config:set ${name} ${key}="${value.replaceAll(' ', '\\ ')}"`).result
+    },
+    setAll: async (name: string, configs:{key: string, value: string}[]) => {
+        return await run(`config:set ${name} ${configs.map(c => `${c.key}="${c.value.replaceAll(' ', '\\ ')}"`).join(' ')}`).result
+    },
+    unset: async (name: string, key: string) => {
+        return await run(`config:unset ${name} ${key}`).result
+    },
+    unsetAll: async (name: string, configs:{key: string, value: string}[]) => {
+        return await run(`config:unset ${name} ${configs.map(c => c.key).join(' ')}`).result
+    }
+}
+
 const command = async (name: string, cmd: AppCommand) => {
     if (!APP_COMMANDS.includes(cmd)) {
         throw new Error('Invalid command')
@@ -125,4 +153,5 @@ export default {
     state,
     urls,
     list,
+    config,
 }

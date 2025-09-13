@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import Convert from 'ansi-to-html'
 import {APP_COMMANDS, type AppInfo, type AppState} from "#shared/dokku/apps";
+import type {TableColumn, TableRow} from "#ui/components/Table.vue";
+import zod from "zod";
+import type {FormSubmitEvent} from "#ui/types";
 
 definePageMeta({
   middleware: ['authenticated'],
@@ -20,6 +23,73 @@ const state: Ref<AppState> = ref({
 })
 const urls: Ref<string[]> = ref([])
 const logs: Ref<string> = ref('')
+
+const config: Ref<{ key: string, value: string }[]> = ref([])
+const configColumns: TableColumn<{ key: string, value: string }[]>[] = [
+  {accessorKey: 'key', header: 'Key'},
+  {accessorKey: 'value', header: 'Value'},
+  {id: 'action', header: 'Edit'},
+]
+const configSchema = zod.object({
+  key: zod.string().min(1, 'Key is required'),
+  value: zod.string().min(1, 'Value is required')
+})
+type ConfigSchema = zod.infer<typeof configSchema>
+const newConfigState = reactive<Partial<ConfigSchema>>({
+  key: '',
+  value: ''
+})
+
+async function addConfig(event: FormSubmitEvent<ConfigSchema>) {
+  console.log(event)
+  return $fetch(`/api/dokku/apps/${name}/config/set`, {
+    method: 'POST',
+    body: event.data
+  }).then(() => {
+    newConfigState.key = ''
+    newConfigState.value = ''
+    loadData()
+  }).catch(err => {
+    return [{name: 'submit', message: `Failed to add config: ${err.message}`}]
+  })
+}
+
+function editConfig(row: TableRow<ConfigSchema>) {
+  const config = row.original
+  newConfigState.key = config.key
+  newConfigState.value = config.value
+}
+
+function deleteConfig(row: TableRow<ConfigSchema>) {
+  const config = row.original
+  const loading = ref(false)
+  const error = ref('')
+  confirmModal.open({
+    title: `Delete config ${config.key}?`,
+    body: `Are you sure you want to delete the config ${config.key}? This action cannot be undone.`,
+    confirmText: `Delete ${config.key}`,
+    confirmColor: 'error',
+    loading: loading,
+    error: error,
+    confirm: () => {
+      loading.value = true
+      $fetch(`/api/dokku/apps/${name}/config/unset`, {
+        method: 'POST',
+        body: {key: config.key}
+      }).then(() => {
+        loading.value = false
+        confirmModal.close(true)
+        loadData()
+      }).catch(err => {
+        loading.value = false
+        error.value = `Failed to delete config ${config.key}: ${err.message}`
+      })
+    }
+  })
+}
+
+
+
 const modalOpen: Ref<boolean> = ref(false)
 const modalTitle: Ref<string> = ref('Command Output')
 const commandOutput: Ref<string> = ref('')
@@ -38,6 +108,7 @@ function loadData() {
     logs.value = convert.toHtml(res as string)
   })
   $fetch(`/api/dokku/apps/${name}/urls`).then(res => urls.value = res)
+  $fetch(`/api/dokku/apps/${name}/config/list`).then(res => config.value = res)
 }
 
 onMounted(async () => {
@@ -140,7 +211,7 @@ function destroyApp() {
       </UTooltip>
       <div class="ms-auto flex items-center gap-2">
         <UButton
-            :disabled="!state.reployed || state.running" color="success" icon="i-pajamas-play"
+            :disabled="!state.deployed || state.running" color="success" icon="i-pajamas-play"
             @click="runCommand('start')">Start
         </UButton>
         <UButton :disabled="!state.deployed" color="warning" icon="i-pajamas-repeat" @click="runCommand('restart')">
@@ -174,6 +245,26 @@ function destroyApp() {
       </tbody>
     </table>
 
+    <h3 class="mt-8 mb-4">Config</h3>
+    <UTable :data="config" :columns="configColumns">
+      <template #action-cell="{ row }">
+        <div class="flex items-center gap-2">
+          <UButton color="neutral" icon="i-pajamas-pencil" @click="editConfig(row)"/>
+          <UButton color="error" icon="i-pajamas-remove" @click="deleteConfig(row)"/>
+        </div>
+      </template>
+    </UTable>
+    <UForm :schema="configSchema" :state="newConfigState" @submit="addConfig">
+      <UFieldGroup>
+        <UInput v-model="newConfigState.key" label="Key" placeholder="Key"/>
+        <UBadge color="neutral" variant="outline" label="="/>
+        <UInput v-model="newConfigState.value" label="Value" placeholder="Value"/>
+        <UButton type="submit" class="mt-4 md:mt-0" color="primary" icon="i-pajamas-plus">
+          Add Config
+        </UButton>
+      </UFieldGroup>
+    </UForm>
+    <h3 class="mt-8 mb-4">Destructive actions</h3>
     <UButton
         class="mt-4"
         color="error"
