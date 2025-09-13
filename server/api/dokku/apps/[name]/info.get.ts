@@ -1,23 +1,11 @@
-import {dokkuClient} from "~~/server/utils/dokku";
-
 export default defineEventHandler(async (event) => {
-    const run = dokkuClient()
+    await requireUserSession(event)
     const {name} = event.context.params as { name: string }
-    const infoResult = await run(`apps:report ${name}`).result.catch(console.error)
-    if (!infoResult) {
+    return await dokku.apps.info(name).catch(err => {
         throw createError({
             statusCode: 404,
-            statusMessage: `App ${name} not found`
+            statusMessage: `App ${name} not found`,
+            data: err.message
         })
-    }
-    const infoLines = (infoResult as string).split('\n').slice(0, -1)
-    const info: Record<string, string | boolean> = {}
-    infoLines.forEach(line => {
-        const [key, ...valueParts] = line.split(':')
-        let value: string | boolean = valueParts.join(':').trim()
-        if (value === 'true') value = true
-        else if (value === 'false') value = false
-        info[key.trim()] = value
     })
-    return info
 })
