@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Convert from 'ansi-to-html'
+import type {Database} from "#shared/dokku/databases";
 
 definePageMeta({
   middleware: ['authenticated'],
