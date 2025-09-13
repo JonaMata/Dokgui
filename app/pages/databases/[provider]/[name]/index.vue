@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import Convert from 'ansi-to-html'
+import type {Database} from "#shared/dokku/databases";
+import type {App} from "#shared/dokku/apps";
 
 definePageMeta({
   middleware: ['authenticated'],
@@ -12,18 +14,34 @@ const {name, provider} = useRoute().params
 const titleName = `${provider} database ${name}`
 const db: Ref<Database> = ref({})
 const logs: Ref<string> = ref('')
+
+const apps: Ref<App[]> = ref([])
+
+const appToLink: Ref<string> = ref('')
+const appToUnlink: Ref<string> = ref('')
+const linkingApp = ref(false)
+const unlinkingApp = ref(false)
+const appLinkError: Ref<string> = ref('')
+const appUnlinkError: Ref<string> = ref('')
+
 const modalOpen: Ref<boolean> = ref(false)
 const modalTitle: Ref<string> = ref('Command Output')
 const commandOutput: Ref<string> = ref('')
 const commandRunnning: Ref<boolean> = ref(false)
-onMounted(async () => {
+
+function loadData() {
   $fetch(`/api/dokku/databases/${provider}/${name}/info`).then(res => db.value = res)
   $fetch(`/api/dokku/databases/${provider}/${name}/logs`).then(res => {
     const convert = new Convert({
       newline: true
     })
-    logs.value = convert.toHtml(res)
+    logs.value = convert.toHtml(res as string)
   })
+  $fetch('/api/dokku/apps/list').then(res => apps.value = res)
+}
+
+onMounted(async () => {
+  loadData()
 })
 
 async function runCommand(command: string) {
@@ -68,13 +86,7 @@ async function runCommand(command: string) {
           modalTitle.value = `${titleName} restarted`
           break
       }
-      $fetch(`/api/dokku/databases/${provider}/${name}/info`).then(res => db.value = res)
-      $fetch(`/api/dokku/databases/${provider}/${name}/logs`).then(res => {
-        const convert = new Convert({
-          newline: true
-        })
-        logs.value = convert.toHtml(res)
-      })
+      loadData()
       return;
     }
     output += decoder.decode(value)
@@ -111,6 +123,36 @@ function destroyDb() {
     }
   })
 }
+
+function linkApp() {
+  linkingApp.value = true
+  $fetch(`/api/dokku/databases/${provider}/${name}/link`, {
+    method: 'POST',
+    body: {app: appToLink.value}
+  }).then(() => {
+    linkingApp.value = false
+    appToLink.value = ''
+    loadData()
+  }).catch(err => {
+    linkingApp.value = false
+    appLinkError.value = `Failed to link app: ${err.message}`
+  })
+}
+
+function unlinkApp() {
+  unlinkingApp.value = true
+  $fetch(`/api/dokku/databases/${provider}/${name}/unlink`, {
+    method: 'POST',
+    body: {app: appToUnlink.value}
+  }).then(() => {
+    unlinkingApp.value = false
+    appToUnlink.value = ''
+    loadData()
+  }).catch(err => {
+    unlinkingApp.value = false
+    appUnlinkError.value = `Failed to unlink app: ${err.message}`
+  })
+}
 </script>
 
 <template>
@@ -144,16 +186,44 @@ function destroyDb() {
       <tr>
         <td class="font-bold align-top pr-4">Linked apps</td>
         <td>
-          <ul>
+          <ul v-if="db.apps?.length > 0">
             <li v-for="app in db.apps" :key="app"><a :href="`/apps/${app}`" target="_blank">{{ app }}</a></li>
           </ul>
+          <template v-else>
+            No apps linked.
+          </template>
         </td>
       </tr>
       </tbody>
     </table>
 
+    <h3 class="mt-8 mb-2">(Un)link Apps</h3>
+    <div class="flex items-start gap-2">
+      <div>
+        <UFieldGroup>
+          <USelect
+              v-model="appToLink" :disabled="linkingApp"
+              :items="apps.map(a => a.name).filter(a => !db.apps?.includes(a))"
+              placeholder="Select app to link"/>
+          <UButton :loading="linkingApp" :disabled="linkingApp" color="primary" @click="linkApp">
+            Link
+          </UButton>
+        </UFieldGroup>
+        <span class="text-sm text-error">{{ appLinkError }}</span>
+      </div>
+      <div>
+        <UFieldGroup>
+          <USelect v-model="appToUnlink" :disabled="unlinkingApp" :items="db.apps" placeholder="Select app to unlink"/>
+          <UButton :loading="unlinkingApp" :disabled="unlinkingApp" color="primary" @click="unlinkApp">
+            Unlink
+          </UButton>
+        </UFieldGroup>
+        <span class="text-sm text-error">{{ appUnlinkError }}</span>
+      </div>
+    </div>
+
+    <h3 class="mt-8 mb-2">Destructive actions</h3>
     <UButton
-        class="mt-4"
         color="error"
         icon="i-pajamas-remove"
         @click="destroyDb()">
