@@ -209,7 +209,7 @@ function unlinkApp() {
             Link
           </UButton>
         </UFieldGroup>
-        <span class="text-sm text-error">{{ appLinkError }}</span>
+        <div class="text-sm text-error">{{ appLinkError }}</div>
       </div>
       <div>
         <UFieldGroup>
@@ -218,7 +218,7 @@ function unlinkApp() {
             Unlink
           </UButton>
         </UFieldGroup>
-        <span class="text-sm text-error">{{ appUnlinkError }}</span>
+        <div class="text-sm text-error">{{ appUnlinkError }}</div>
       </div>
     </div>
 
