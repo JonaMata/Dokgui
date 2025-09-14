@@ -28,6 +28,11 @@ const items = computed<NavigationMenuItem[]>(() => [
     label: 'Tokens',
     to: '/tokens',
     active: route.path.startsWith('/tokens')
+  },
+  {
+    label: 'Account',
+    to: '/account',
+    active: route.path.startsWith('/account')
   }
 ])
 </script>
@@ -52,6 +57,9 @@ const items = computed<NavigationMenuItem[]>(() => [
             aria-label="GitHub"
         />
       </UTooltip>
+    </template>
+    <template #body>
+      <UNavigationMenu :items="items" orientation="vertical"/>
     </template>
   </component>
 </template>

@@ -259,8 +259,8 @@ function destroyApp() {
         <UInput v-model="newConfigState.key" label="Key" placeholder="Key"/>
         <UBadge color="neutral" variant="outline" label="="/>
         <UInput v-model="newConfigState.value" label="Value" placeholder="Value"/>
-        <UButton type="submit" class="mt-4 md:mt-0" color="primary" icon="i-pajamas-plus">
-          Add Config
+        <UButton type="submit" color="primary" :icon="config.map(a => a.key).includes(newConfigState.key) ? 'i-pajamas-pencil' : 'i-pajamas-plus'">
+          {{ config.map(a => a.key).includes(newConfigState.key) ? 'Edit' : 'Add' }}
         </UButton>
       </UFieldGroup>
     </UForm>
