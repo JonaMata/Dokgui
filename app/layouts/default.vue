@@ -5,7 +5,7 @@ import Footer from "~/components/layout/Footer.vue";
 </script>
 
 <template>
-  <UApp tooltip.delayDuration="200">
+  <UApp tooltip.delay-duration="200">
     <NavBar/>
     <UMain class="py-4">
       <slot/>

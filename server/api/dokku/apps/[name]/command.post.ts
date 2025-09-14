@@ -8,6 +8,6 @@ export default defineEventHandler(async (event) => {
     await requireUserSession(event)
     const {name} = event.context.params as { name: string }
     const {command} = await readValidatedBody(event, bodySchema.parse)
-    const stream = dokku.apps.command(name, command)
+    const stream = await dokku.apps.command(name, command)
     return sendStream(event, stream)
 })

@@ -12,7 +12,13 @@ const confirmModal = useConfirmModal()
 // const {user, clear: clearSession} = useUserSession()
 const {name, provider} = useRoute().params
 const titleName = `${provider} database ${name}`
-const db: Ref<Database> = ref({})
+const db: Ref<Database> = ref({
+  name: '',
+  provider: '',
+  version: '',
+  status: 'stopped',
+  apps: []
+})
 const logs: Ref<string> = ref('')
 
 const apps: Ref<App[]> = ref([])
@@ -37,7 +43,7 @@ function loadData() {
     })
     logs.value = convert.toHtml(res as string)
   })
-  $fetch('/api/dokku/apps/list').then(res => apps.value = res)
+  $fetch('/api/dokku/apps/list').then(res => apps.value = res as App[])
 }
 
 onMounted(async () => {
@@ -72,7 +78,7 @@ async function runCommand(command: string) {
   })
 
   let output: string = ''
-  reader.read().then(function pump({done, value}) {
+  reader.read().then(function pump({done, value}): Promise<void> | void {
     if (done) {
       commandRunnning.value = false
       switch (command) {
@@ -112,7 +118,7 @@ function destroyDb() {
       loading.value = true
       $fetch(`/api/dokku/databases/${provider}/${name}/destroy`, {
         method: 'POST'
-      }).then(res => {
+      }).then(() => {
         loading.value = false
         confirmModal.close(true)
         navigateTo('/databases')
@@ -167,8 +173,9 @@ function unlinkApp() {
             :disabled="db.status === 'running'" color="success" icon="i-pajamas-play"
             @click="runCommand('start')">Start
         </UButton>
-        <UButton :disabled="db.status !== 'running'" color="warning" icon="i-pajamas-repeat"
-                 @click="runCommand('restart')">
+        <UButton
+            :disabled="db.status !== 'running'" color="warning" icon="i-pajamas-repeat"
+            @click="runCommand('restart')">
           Restart
         </UButton>
         <UButton
