@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { loggedIn, user, fetch: refreshSession } = useUserSession()
+const {fetch: refreshSession } = useUserSession()
 const credentials = reactive({
   email: '',
   password: '',
@@ -20,8 +20,8 @@ async function login() {
 
 <template>
   <form @submit.prevent="login">
-    <input v-model="credentials.email" type="email" placeholder="Email" />
-    <input v-model="credentials.password" type="password" placeholder="Password" />
+    <input v-model="credentials.email" type="email" placeholder="Email" >
+    <input v-model="credentials.password" type="password" placeholder="Password" >
     <button type="submit">Login</button>
   </form>
 </template>

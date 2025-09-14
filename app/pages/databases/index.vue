@@ -64,7 +64,9 @@ async function createDb() {
         <UButton @click="createModal(provider)">Create database</UButton>
       </div>
       <UPageGrid v-if="dbs.length > 0">
-        <UCard v-for="db in dbs" :key="db" variant="subtle" @click="navigateTo({ name: 'databases-provider-name', params: { provider: provider, name: db.name } })" class="cursor-pointer">
+        <UCard
+            v-for="db in dbs" :key="db" variant="subtle" class="cursor-pointer"
+            @click="navigateTo({ name: 'databases-provider-name', params: { provider: provider, name: db.name } })">
           <template #header>
             <div class="flex justify-between items-center">
               <h3>{{ db.name }}</h3>
@@ -80,17 +82,20 @@ async function createDb() {
                   </UTooltip>
                 </template>
                 <UTooltip :text="db.status === 'running' ? 'Running' : 'Stopped'">
-                  <div class="rounded-full h-4 w-4 "
-                       :class="db.status === 'running' ? 'bg-primary animate-pulse' : 'bg-error'"/>
+                  <div
+                      class="rounded-full h-4 w-4 "
+                      :class="db.status === 'running' ? 'bg-primary animate-pulse' : 'bg-error'"/>
                 </UTooltip>
               </div>
             </div>
           </template>
           <template v-if="db.apps.length > 0">
             Linked apps:
-          <ul>
-            <li v-for="app in db.apps" :key="app"><NuxtLink :to="{ name: 'apps-name', params: { name: app }}">{{ app }}</NuxtLink></li>
-          </ul>
+            <ul>
+              <li v-for="app in db.apps" :key="app">
+                <NuxtLink :to="{ name: 'apps-name', params: { name: app }}">{{ app }}</NuxtLink>
+              </li>
+            </ul>
           </template>
           <span v-else>No apps linked to DB</span>
         </UCard>

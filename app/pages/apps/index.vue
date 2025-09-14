@@ -71,7 +71,7 @@ async function createApp() {
     <UButton class="mb-4" @click="createModal()">Create app</UButton>
 
     <UPageGrid>
-      <UCard v-for="app in apps" :key="app.name" variant="subtle" @click="navigateTo({ name: 'apps-name', params: { name: app.name } })" class="cursor-pointer">
+      <UCard v-for="app in apps" :key="app.name" variant="subtle" class="cursor-pointer" @click="navigateTo({ name: 'apps-name', params: { name: app.name } })">
         <template #header>
           <div class="flex justify-between items-center">
             <h3>{{ app.name }}</h3>

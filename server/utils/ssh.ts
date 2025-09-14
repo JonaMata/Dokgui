@@ -1,4 +1,3 @@
-import type {Client} from 'ssh2'
 import type {Ssh} from "~~/server/plugins/ssh";
 
 
